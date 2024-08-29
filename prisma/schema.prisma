@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Measure {
+  @@map("measures")
+  measure_uuid     String   @id
+  measure_value    Int
+  measure_type     String
+  measure_datetime DateTime
+  customer_code    String
+  has_confirmed    Boolean
+  image_url        String
+}
