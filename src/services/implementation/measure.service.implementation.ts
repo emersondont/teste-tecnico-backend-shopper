@@ -25,10 +25,15 @@ export class MeasureServiceImplementation implements MeasureService {
       throw new DoubleReportException();
     }
 
-    const uploadResponse = await this.geminiApiService.uploadFile(image);
+    const meterValues = await this.geminiApiService.readMeter(image);
 
-    const aMeasure = Measure.create({ customer_code, measure_datetime, measure_type, image_url: uploadResponse.image_url });
-    aMeasure.updateValue(uploadResponse.measure_value);
+    const aMeasure = Measure.create({
+      customer_code,
+      measure_datetime,
+      measure_type,
+      image_url: meterValues.image_url,
+      measure_value: meterValues.measure_value
+    });
 
     await this.repository.save(aMeasure);
 

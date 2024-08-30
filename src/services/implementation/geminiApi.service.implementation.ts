@@ -1,12 +1,13 @@
 import { GoogleAIFileManager } from "@google/generative-ai/server";
-import { FileUploadOutputDto, GeminiApiService } from "../geminiApi/geminiApi.service";
-import fs from 'fs';
+import { GeminiApiService, ReadMeterOutputDto } from "../geminiApi/geminiApi.service";
+import fs from 'fs/promises';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export class GeminiApiServiceImplementation implements GeminiApiService {
   private constructor(
     private readonly fileManager: GoogleAIFileManager,
-    private readonly genAI: GoogleGenerativeAI
+    private readonly genAI: GoogleGenerativeAI,
+    private readonly filename: string = "medidor.png"
   ) { }
 
   public static build() {
@@ -16,17 +17,21 @@ export class GeminiApiServiceImplementation implements GeminiApiService {
     return new GeminiApiServiceImplementation(fileManager, genAI);
   }
 
-  public async uploadFile(base64Image: string): Promise<FileUploadOutputDto> {
-    const filename = "medidor.png";
-    this.base64DecodeImage(base64Image, filename);
+  public async readMeter(base64Image: string): Promise<ReadMeterOutputDto> {
+    // Decode the base64 image and save it to a file
+    await this.base64DecodeImage(base64Image, this.filename);
 
-    const uploadResponse = await this.fileManager.uploadFile(filename, {
+    const uploadResponse = await this.fileManager.uploadFile(this.filename, {
       mimeType: "image/png",
       displayName: "Measure Image"
     });
-     
+
+    // Delete the file after uploading it
+    await fs.unlink(this.filename);
+
     try {
       console.log("Reading measure_value from the meter using the Gemini-1.5-flash model");
+
       const model = this.genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
       });
@@ -34,8 +39,8 @@ export class GeminiApiServiceImplementation implements GeminiApiService {
       const generatedContent = await model.generateContent([
         {
           fileData: {
-        mimeType: uploadResponse.file.mimeType,
-        fileUri: uploadResponse.file.uri
+            mimeType: uploadResponse.file.mimeType,
+            fileUri: uploadResponse.file.uri
           }
         },
         { text: `Based on the image, return only the integer number corresponding to the value displayed by the meter. If it is not possible to read the value, return 0.` },
@@ -58,16 +63,21 @@ export class GeminiApiServiceImplementation implements GeminiApiService {
     }
   }
 
-  private base64DecodeImage(base64Image: string, imageName: string) {
-    fs.writeFile(imageName, base64Image, function (error) {
-      if (error) {
-        throw error;
-      } else {
-        console.log('File created from base64 string');
-        return true;
+  private async base64DecodeImage(base64Image: string, imageName: string): Promise<void> {
+    try {
+      let base64String = base64Image;
+
+      // If the string contains a comma, it means it has the prefix "data:image/...;base64,"
+      if (base64Image.includes(',')) {
+        base64String = base64Image.split(',')[1];
       }
-    });
+      
+      const buf = Buffer.from(base64String, 'base64');
+      await fs.writeFile(imageName, buf);
+      console.log(`File ${imageName} created from base64 string`);
+    } catch (error) {
+      console.error(`Failed to create file ${imageName} from base64 string:`, error);
+      throw error;
+    }
   }
-
 }
-

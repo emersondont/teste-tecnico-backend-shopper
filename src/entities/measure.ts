@@ -13,11 +13,10 @@ export type MeasureType = "WATER" | "GAS" | string;
 export class Measure {
   private constructor(readonly props: MeasureProps) {}
 
-  public static create(props: Omit<MeasureProps, "measure_uuid" | "measure_value" | "has_confirmed">) {
+  public static create(props: Omit<MeasureProps, "measure_uuid" | "has_confirmed">) {
     return new Measure({
       ...props,
       measure_uuid: crypto.randomUUID().toString(),
-      measure_value: 0,
       has_confirmed: false,
     });
   }

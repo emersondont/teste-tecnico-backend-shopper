@@ -1,6 +1,7 @@
 import { body } from "express-validator";
 
-const base64ImageRegex = /^data:image\/(bmp|gif|ico|jpg|jpeg|png|svg|webp|x-icon|svg\+xml);base64,[a-zA-Z0-9+/]+={0,2}$/;
+// The image can have the prefix "data:image/...;base64," or it can be just the base64 string
+const base64ImageRegex = /^(data:image\/(bmp|gif|ico|jpg|jpeg|png|svg|webp|x-icon|svg\+xml);base64,)?[a-zA-Z0-9+/]+={0,2}$/;
 
 const uploadValidations = [
   body('image').matches(base64ImageRegex).withMessage("image precisa ser do tipo base64"),

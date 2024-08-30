@@ -1,10 +1,9 @@
-import { MeasureType } from "../../entities/measure";
 
-export interface FileUploadOutputDto {
+export interface ReadMeterOutputDto {
   image_url: string;
   measure_value: number;
 }
 
 export interface GeminiApiService {
-  uploadFile(base64Image: string): Promise<FileUploadOutputDto>;
+  readMeter(base64Image: string): Promise<ReadMeterOutputDto>;
 }
