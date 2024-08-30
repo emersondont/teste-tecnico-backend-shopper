@@ -3,6 +3,7 @@ import { ConfirmationDuplicateException } from "../../exceptions/confirmationDup
 import { DoubleReportException } from "../../exceptions/doubleReportException";
 import { InvalidTypeException } from "../../exceptions/invalidTypeException";
 import { MeasureNotFoundException } from "../../exceptions/measureNotFoundException";
+import { MeasuresNotFoundException } from "../../exceptions/measuresNotFoundException";
 import { MeasureRepository } from "../../repositories/measure/measure.repository";
 import { ConfirmMeasureOutputDto, CreateMeasureOutputDto, ListMeasuresOutputDto, MeasureService } from "../measure/measure.service";
 import { GeminiApiServiceImplementation } from "./geminiApi.service.implementation";
@@ -70,7 +71,7 @@ export class MeasureServiceImplementation implements MeasureService {
     const aMeasures = await this.repository.list(customer_code, measure_type);
 
     if (aMeasures.length === 0) {
-      throw new MeasureNotFoundException();
+      throw new MeasuresNotFoundException();
     }
 
     return {
