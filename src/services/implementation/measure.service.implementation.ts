@@ -6,9 +6,14 @@ import { InvalidTypeException } from "../../exceptions/invalidTypeException";
 import { MeasureNotFoundException } from "../../exceptions/measureNotFoundException";
 import { MeasureRepository } from "../../repositories/measure/measure.repository";
 import { ConfirmMeasureOutputDto, CreateMeasureOutputDto, ListMeasuresOutputDto, MeasureService } from "../measure/measure.service";
+import { GeminiApiServiceImplementation } from "./geminiApi.service.implementation";
 
 export class MeasureServiceImplementation implements MeasureService {
-  private constructor(readonly repository: MeasureRepository) { }
+  private geminiApiService: GeminiApiServiceImplementation;
+
+  private constructor(readonly repository: MeasureRepository) {
+    this.geminiApiService = GeminiApiServiceImplementation.build();
+  }
 
   public static build(repository: MeasureRepository): MeasureServiceImplementation {
     return new MeasureServiceImplementation(repository);
@@ -16,13 +21,14 @@ export class MeasureServiceImplementation implements MeasureService {
 
   public async create(image: string, customer_code: string, measure_datetime: Date, measure_type: MeasureType): Promise<CreateMeasureOutputDto> {
     const existingMeasure = await this.repository.findByCustomerAndTypeAndDatetime(customer_code, measure_type, measure_datetime);
-    if(existingMeasure) {
+    if (existingMeasure) {
       throw new DoubleReportException();
     }
-    
-    const aMeasure = Measure.create({ customer_code, measure_datetime, measure_type, image_url: image });
-    //arrumar o image_url
-    //consultar api do gemini para pegar o valor da medida
+
+    const uploadResponse = await this.geminiApiService.uploadFile(image);
+
+    const aMeasure = Measure.create({ customer_code, measure_datetime, measure_type, image_url: uploadResponse.image_url });
+    aMeasure.updateValue(uploadResponse.measure_value);
 
     await this.repository.save(aMeasure);
 
@@ -35,7 +41,7 @@ export class MeasureServiceImplementation implements MeasureService {
 
   public async confirmMeasure(measure_uuid: string, confirmed_value: number): Promise<ConfirmMeasureOutputDto> {
     const aMeasure = await this.repository.find(measure_uuid)
-    
+
     if (!aMeasure) {
       throw new MeasureNotFoundException();
     }
@@ -53,13 +59,13 @@ export class MeasureServiceImplementation implements MeasureService {
   }
 
   public async listMeasures(customer_code: string, measure_type?: MeasureType): Promise<ListMeasuresOutputDto> {
-    if(measure_type && measure_type != "WATER" && measure_type != "GAS") {
+    if (measure_type && measure_type != "WATER" && measure_type != "GAS") {
       throw new InvalidTypeException();
     }
-    
+
     const aMeasures = await this.repository.list(customer_code, measure_type);
 
-    if(aMeasures.length === 0) {
+    if (aMeasures.length === 0) {
       throw new MeasureNotFoundException();
     }
 
