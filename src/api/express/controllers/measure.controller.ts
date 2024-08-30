@@ -3,7 +3,6 @@ import { MeasureRepositoryPrisma } from "../../../repositories/measure/prisma/me
 import { prisma } from "../../../util/prisma.utils";
 import { MeasureServiceImplementation } from "../../../services/implementation/measure.service.implementation";
 import { DoubleReportException } from "../../../exceptions/doubleReportException";
-import { InvalidDataException } from "../../../exceptions/invalidDataException";
 import { MeasureNotFoundException } from "../../../exceptions/measureNotFoundException";
 import { ConfirmationDuplicateException } from "../../../exceptions/confirmationDuplicateException";
 import { InvalidTypeException } from "../../../exceptions/invalidTypeException";
@@ -12,7 +11,7 @@ import { MeasureType } from '../../../entities/measure';
 
 export class MeasureController {
 
-  private constructor() {}
+  private constructor() { }
 
   public static build() {
     return new MeasureController();
@@ -23,15 +22,12 @@ export class MeasureController {
 
     const aMeasureRepository = MeasureRepositoryPrisma.build(prisma);
     const aMeasureService = MeasureServiceImplementation.build(aMeasureRepository);
-    
+
     try {
       const output = await aMeasureService.create(image, customer_code, new Date(measure_datetime), measure_type);
       response.status(200).json(output).send();
     } catch (error) {
-      if (
-        error instanceof InvalidDataException ||
-        error instanceof DoubleReportException
-      ) {
+      if (error instanceof DoubleReportException) {
         error.handleErrorResponse(response);
       } else {
         response.status(500).json({ error: "Internal Server Error" }).send();
@@ -44,13 +40,12 @@ export class MeasureController {
 
     const aMeasureRepository = MeasureRepositoryPrisma.build(prisma);
     const aMeasureService = MeasureServiceImplementation.build(aMeasureRepository);
-    
+
     try {
       const output = await aMeasureService.confirmMeasure(measure_uuid, confirmed_value);
       response.status(200).json(output).send();
     } catch (error) {
       if (
-        error instanceof InvalidDataException ||
         error instanceof MeasureNotFoundException ||
         error instanceof ConfirmationDuplicateException
       ) {

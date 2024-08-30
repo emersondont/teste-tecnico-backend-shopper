@@ -1,6 +1,6 @@
 import { Api } from "../api";
 import express, { Express, NextFunction, Request, Response } from "express";
-import { validationResult, ValidationChain } from 'express-validator';
+import { ValidationChain } from 'express-validator';
 
 export class ApiExpress implements Api {
     private constructor(readonly app: Express) { }
@@ -48,7 +48,6 @@ export class ApiExpress implements Api {
                 const result = await validation.run(req);
                 if (!result.isEmpty()) {
                     errors.push(result.array());
-                    // return res.status(400).json({ errors: result.array() });
                 }
             }
             if (errors.length > 0) {

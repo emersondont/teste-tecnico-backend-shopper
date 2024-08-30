@@ -1,4 +1,3 @@
-import { body } from "express-validator";
 import { ApiExpress } from "./api/express/api.express";
 import { MeasureController } from "./api/express/controllers/measure.controller";
 import { confirmValidations, uploadValidations } from "./validations/validation";

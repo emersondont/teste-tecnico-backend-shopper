@@ -1,7 +1,6 @@
 import { Measure, MeasureType } from "../../entities/measure";
 import { ConfirmationDuplicateException } from "../../exceptions/confirmationDuplicateException";
 import { DoubleReportException } from "../../exceptions/doubleReportException";
-import { InvalidDataException } from "../../exceptions/invalidDataException";
 import { InvalidTypeException } from "../../exceptions/invalidTypeException";
 import { MeasureNotFoundException } from "../../exceptions/measureNotFoundException";
 import { MeasureRepository } from "../../repositories/measure/measure.repository";
