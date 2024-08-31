@@ -58,7 +58,7 @@ export class MeasureController {
 
   public async list(request: Request, response: Response) {
     const { customer_code } = request.params;
-    const { measure_type } = request.query;
+    const { measure_type } = request.query || {};
 
     const aMeasureRepository = MeasureRepositoryPrisma.build(prisma);
     const aMeasureService = MeasureServiceImplementation.build(aMeasureRepository);
